@@ -1,5 +1,5 @@
 """
-ComfyUI-DepthAnythingV3: Depth Anything V3 nodes for ComfyUI
+ENVLESSComfyUI-DepthAnythingV3: Depth Anything V3 nodes for ComfyUI
 """
 from .load_model import (
     DownloadAndLoadDepthAnythingV3Model,

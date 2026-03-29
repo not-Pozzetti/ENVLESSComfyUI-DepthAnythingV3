@@ -115,7 +115,7 @@
         }
       ],
       "properties": {
-        "cnr_id": "ComfyUI-DepthAnythingV3",
+        "cnr_id": "ENVLESSComfyUI-DepthAnythingV3",
         "ver": "0bb483bb0db9bf0fdae73117fec75ea96dc45b7c",
         "Node name for S&R": "DepthAnything_V3"
       },
@@ -180,10 +180,10 @@
         }
       ],
       "properties": {
-        "cnr_id": "ComfyUI-DepthAnythingV3",
+        "cnr_id": "ENVLESSComfyUI-DepthAnythingV3",
         "ver": "f900962397f5dd3df02d3caba1e99b0cfe80c25a",
         "Node name for S&R": "DownloadAndLoadDepthAnythingV3Model",
-        "aux_id": "PozzettiAndrea/ComfyUI-DepthAnythingV3"
+        "aux_id": "not-pozzetti/ENVLESSComfyUI-DepthAnythingV3"
       },
       "widgets_values": [
         "da3_large.safetensors",
