@@ -1,34 +1,57 @@
+"""Prestartup Script (Clean version)."""
 import logging
+import shutil
 from pathlib import Path
-from comfy_env import setup_env, copy_files
-from comfy_3d_viewers import copy_viewer
+
+# Try to import optional helper packages
+try:
+    from comfy_3d_viewers import copy_viewer
+except ImportError:
+    copy_viewer = None
 
 log = logging.getLogger("depthanythingv3")
 
-setup_env()
+def copy_assets():
+    SCRIPT_DIR = Path(__file__).resolve().parent
+    # ComfyUI directory is usually two levels up from custom_nodes/folder/
+    COMFYUI_DIR = SCRIPT_DIR.parent.parent
+    
+    # 1. Copy pointcloud VTK viewer from comfy-3d-viewers
+    if copy_viewer:
+        try:
+            copy_viewer("pointcloud_vtk", SCRIPT_DIR / "web")
+        except Exception as e:
+            log.warning(f"Failed to copy viewer: {e}")
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-COMFYUI_DIR = SCRIPT_DIR.parent.parent
+    # 2. Copy dynamic widgets JS
+    try:
+        from comfy_dynamic_widgets import get_js_path
+        src = Path(get_js_path())
+        if src.exists():
+            dst = SCRIPT_DIR / "web" / "js" / "dynamic_widgets.js"
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
+                shutil.copy2(src, dst)
+                log.info(f"Copied dynamic widgets from {src} to {dst}")
+    except (ImportError, Exception):
+        pass
 
-# Copy pointcloud VTK viewer from comfy-3d-viewers
-copy_viewer("pointcloud_vtk", SCRIPT_DIR / "web")
-
-# Copy dynamic widgets JS
-try:
-    from comfy_dynamic_widgets import get_js_path
-    import shutil
-    src = Path(get_js_path())
+    # 3. Copy assets to ComfyUI input directory
+    src = SCRIPT_DIR / "assets"
+    dst = COMFYUI_DIR / "input"
+    
     if src.exists():
-        dst = SCRIPT_DIR / "web" / "js" / "dynamic_widgets.js"
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
-            shutil.copy2(src, dst)
-except ImportError:
-    pass
+        dst.mkdir(parents=True, exist_ok=True)
+        copied_count = 0
+        for item in src.rglob("*"):
+            if item.is_file():
+                rel_path = item.relative_to(src)
+                target = dst / rel_path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(item, target)
+                copied_count += 1
+        if copied_count > 0:
+            log.info(f"Copied {copied_count} asset(s) from {src} to {dst}")
 
-# Copy assets
-src_dir = SCRIPT_DIR / "assets"
-dst_dir = COMFYUI_DIR / "input"
-copy_files(src_dir, dst_dir, "**/*")
-copied_files = [f.name for f in src_dir.glob("**/*") if f.is_file()]
-log.info(f"Copied {len(copied_files)} asset(s) to {dst_dir}: {copied_files}")
+if __name__ == "__main__":
+    copy_assets()
